@@ -12,6 +12,6 @@ setup(
     packages=['jinja_coverage'],
     install_requires=[
         'Jinja2',
-        'coverage>=4.0a7,<5',
+        'coverage>=5.0a4',
     ],
 )

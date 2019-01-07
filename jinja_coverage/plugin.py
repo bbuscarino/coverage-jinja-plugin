@@ -1,6 +1,8 @@
 """The Jinja2 coverage plugin."""
 
 import os.path
+import pathlib
+
 import coverage.plugin
 from jinja2 import Environment
 from jinja2.loaders import FileSystemLoader
@@ -8,18 +10,27 @@ from jinja2.loaders import FileSystemLoader
 
 class JinjaPlugin(coverage.plugin.CoveragePlugin):
     def __init__(self, options):
-        self.template_directory = options.get("template_directory")
+        self.template_directory = pathlib.Path(options.get("template_directory"))
         self.environment = Environment(
-            loader=FileSystemLoader(self.template_directory),
+            loader=FileSystemLoader(str(self.template_directory)),
             extensions=[]
         )
 
+    def _is_in_template_directory(self, filename):
+        file_path = pathlib.Path(filename)
+        try:
+            file_path.relative_to(self.template_directory)
+        except ValueError:
+            return False
+        else:
+            return True
+
     def file_tracer(self, filename):
-        if os.path.samefile(os.path.dirname(filename), self.template_directory):
+        if self._is_in_template_directory(filename):
             return FileTracer(filename)
 
     def file_reporter(self, filename):
-        if os.path.samefile(os.path.dirname(filename), self.template_directory):
+        if self._is_in_template_directory(filename):
             return FileReporter(filename, self.environment)
 
 
